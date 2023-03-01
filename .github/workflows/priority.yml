@@ -14,11 +14,11 @@ jobs:
         with:
           issue-type: issue
           issue-query: 'is:open label:P0'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Priority Label
         uses: actions/github-script@v4
         with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const issues = await github.issues.listForRepo({
               owner: context.repo.owner,
@@ -45,4 +45,4 @@ jobs:
                 });
               }
             }
-          
+          debug-only: true
