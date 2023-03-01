@@ -12,13 +12,13 @@ jobs:
         id: check_label
         run: |
           label=$(jq -r ".label.name" $GITHUB_EVENT_PATH)
+          echo "::set-output name=label::$label"
           if [ "$label" = "P0" ]; then
             added=$(jq -r ".label.created_at" $GITHUB_EVENT_PATH)
             days=$(( ( $(date -u +%s) - $(date -u +%s -d $added) ) / 86400 ))
             echo "::set-output name=days::$days"
           fi
-        if: ${{ steps.check_label.outputs.days }} >= 1
-
+        if: ${{ steps.check_label.outputs.days }} >= 1 {
       - name: Update Priority Label
         uses: actions/github-script@v4
         with:
@@ -45,4 +45,4 @@ jobs:
                 labels: ['P1']
               });
             }
-            debug-only: true
+            }
