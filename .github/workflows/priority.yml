@@ -45,3 +45,4 @@ jobs:
                 labels: ['P1']
               });
             }
+            debug-only: true
