@@ -1,48 +1,33 @@
-name: Change Priority Label
+name: Check Issue Priority
 
 on:
-  issues:
-    types: [labeled]
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
-  change_priority_label:
+  check-issue-priority:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check if label is P0 and was added more than 60 days ago
-        id: check_label
-        run: |
-          label=$(jq -r ".label.name" $GITHUB_EVENT_PATH)
-          echo "::set-output name=label::$label"
-          if [ "$label" = "P0" ]; then
-            added=$(jq -r ".label.created_at" $GITHUB_EVENT_PATH)
-            days=$(( ( $(date -u +%s) - $(date -u +%s -d $added) ) / 86400 ))
-            echo "::set-output name=days::$days"
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Check issue priority
+      run: |
+        token=$GITHUB_TOKEN
+        user=USERNAME
+        repo=REPO_NAME
+        label_p0="P0"
+        label_p1="P1"
+        days=60
+        date=$(date -u +"%Y-%m-%dT%H:%M:%SZ" -d "-$days days")
+        query="repo:$user/$repo is:issue is:open label:$label_p0 updated:<$date"
+        issues=$(curl -s -H "Authorization: token $token" "https://api.github.com/search/issues?q=$query" | jq -r '.items[].number')
+        for issue in $issues
+        do
+          labels=$(curl -s -H "Authorization: token $token" "https://api.github.com/repos/$user/$repo/issues/$issue/labels" | jq -r '.[].name')
+          if [[ $labels == *"$label_p0"* ]]; then
+            curl -s -X PATCH -H "Authorization: token $token" -H "Content-Type: application/json" -d "{\"labels\":[\"$label_p1\"]}" "https://api.github.com/repos/$user/$repo/issues/$issue"
+            echo "Priority of issue #$issue updated from P0 to P1"
           fi
-        if: ${{ steps.check_label.outputs.days }} >= 1 {
-      - name: Update Priority Label
-        uses: actions/github-script@v4
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const issue_number = context.payload.issue.number;
-            const labels = await github.issues.listLabelsOnIssue({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: issue_number
-            });
-            const currentLabel = labels.data.find(label => label.name === 'P0');
-            if (currentLabel) {
-              await github.issues.removeLabel({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue_number,
-                name: currentLabel.name
-              });
-              await github.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue_number,
-                labels: ['P1']
-              });
-            }
-            }
+        done
