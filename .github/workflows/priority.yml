@@ -11,14 +11,10 @@ jobs:
       - name: Get P0-labeled issues older than 60 days
         id: get_issues
         uses: peter-evans/find-comment@v1
-        with:
-          issue-type: issue
-          issue-query: 'is:open label:P0'
 
       - name: Update Priority Label
         uses: actions/github-script@v4
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const issues = await github.issues.listForRepo({
               owner: context.repo.owner,
@@ -26,11 +22,14 @@ jobs:
               state: 'open',
               labels: 'P0'
             });
+            echo(" issues",$issues)
             for (const issue of issues.data) {
               const issue_number = issue.number;
               const created_at = issue.created_at;
               const days = Math.round((Date.now() - new Date(created_at)) / (1000 * 60 * 60 * 24));
+              echo(" days",$days)
               if (days >= 60) {
+                echo("condition days ",$days)
                 await github.issues.removeLabel({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
