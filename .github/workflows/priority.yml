@@ -5,31 +5,40 @@ on:
     - cron: '*/5 * * * *'  # runs every day at midnight
 
 jobs:
-  update_priority_label:
+  change_priority_label:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Check if issue is more than 60 days old
+        id: check_days
+        run: |
+          created=$(jq -r ".issue.created_at" $GITHUB_EVENT_PATH)
+          days=$(( ( $(date -u +%s) - $(date -u +%s -d $created) ) / 86400 ))
+          echo "::set-output name=days::$days"
+        if: ${{ steps.check_days.outputs.days }} >= 60
 
-    - name: Update priority label
-      uses: peter-evans/wait-action@v2
-      with:
-        time: 60d
-
-    - name: Check P0 issues
-      id: find_issues
-      uses: peter-evans/find-issues@v1
-      with:
-        query: 'is:open label:P0'
-
-    - name: Change label
-      if: steps.find_issues.outputs.total_count > 0
-      uses: peter-evans/update-issue-label@v1
-      with:
-        label: 'P1'
-        add: false
-        remove: true
-        issue-number: ${{ steps.find_issues.outputs.issues[0].number }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update Priority Label
+        uses: actions/github-script@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issue_number = context.payload.issue.number;
+            const labels = await github.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue_number
+            });
+            const currentLabel = labels.data.find(label => label.name === 'P0');
+            if (currentLabel) {
+              await github.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue_number,
+                name: currentLabel.name
+              });
+              await github.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue_number,
+                labels: ['P1']
+              });
+            }
