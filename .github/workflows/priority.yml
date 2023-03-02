@@ -13,7 +13,8 @@ jobs:
     permissions:
       issues: write
     steps:
-      - uses: actions/github-script@v6
+      - Add label
+        uses: actions/github-script@v6
         with:
           script: |
             github.rest.issues.removeLabel({
@@ -22,9 +23,13 @@ jobs:
               repo: context.repo.repo,
               labels: ["bug"]
             })
-            github.rest.issues.addLabels({
+      - remove label
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.removeLabel({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              labels: ["P1"]
+              labels: ["bug"]
             })
