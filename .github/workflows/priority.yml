@@ -22,3 +22,9 @@ jobs:
               repo: context.repo.repo,
               labels: ["P1"]
             })
+            github.rest.issues.removeLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["P0"]
+            })
