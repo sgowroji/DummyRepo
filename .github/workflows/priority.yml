@@ -7,19 +7,14 @@ on:
     types: [opened]
 
 jobs:
-  automate-issues-labels:
+  add-label:
+    name: Add Label
     runs-on: ubuntu-latest
     steps:
-      - name: remove label
-        uses: buildsville/add-remove-label@v2.0.0
+      - uses: actions/checkout@v2
+      - uses: christianvuerings/add-labels@v1
         with:
-          token: ${{secrets.GITHUB_TOKEN}}
-          labels: P0
-          type: remove
-      - name: Add label
-        uses: buildsville/add-remove-label@v2.0.0
-        with:
-          token: ${{secrets.GITHUB_TOKEN}}
-          labels: P1
-          type: add
-          
+          labels: |
+            P1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
