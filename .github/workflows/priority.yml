@@ -16,14 +16,14 @@ jobs:
      - name: priority
        id: check_label
        run: |
-          label=$(jq -r ".label.name" $GITHUB_EVENT_PATH)
-          echo "::set-output name={label}::$($label)"
-          if [ "$label" = "P0" ]; then
-            added=$(jq -r ".label.created_at" $GITHUB_EVENT_PATH)
-            echo "::set-output name={added}::$($added)"
-            days=$(( ( $(date -u +%s) - $(date -u +%s -d $added) ) / 86400 ))
-            echo "::set-output name={days}::{$days}"
-          fi
+        label=$(jq -r ".label.name" $GITHUB_EVENT_PATH)
+        echo "::set-output name=label::$label"
+        if [ "$label" = "P0" ]; then
+          added=$(jq -r ".label.created_at" $GITHUB_EVENT_PATH)
+          echo "::set-output name=added::$added"
+          days=$(( ( $(date -u +%s) - $(date -u +%s -d $added) ) / 86400 ))
+          echo "::set-output name=days::$days"
+        fi
        if: ${{ steps.check_label.outputs.days }} >= 2
         
      - uses: actions/github-script@v6
