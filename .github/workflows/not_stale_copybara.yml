@@ -9,12 +9,13 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
 
-env:
-  DEBUG: true
-
 jobs:
   label-not-stale-prs:
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+      issues: write
     steps:
       - name: Check PR author
         id: pr-author-check
@@ -29,13 +30,13 @@ jobs:
     
       - name: Add "not stale" label
         uses: actions/github-script@v4
-        if: env.DEBUG == 'true'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             console.log('Adding "not stale" label...');
             async function run() {
               const author = context.payload.pull_request.user.login;
+              console.log('Adding "not stale" label...',author);
               if (author === "dependabot[bot]") {
                 const issue_number = context.payload.pull_request.number;
                 const labels = ["not stale"];
