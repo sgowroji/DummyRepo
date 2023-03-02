@@ -31,7 +31,7 @@ jobs:
   update_label:
     runs-on: ubuntu-latest
     needs: check_label
-    if: ${{ needs.check_label.outputs.days }} != '0' && needs.check_label.outputs.label == 'P0'
+    if: ${{ needs.check_label.outputs.days }} == '0' && needs.check_label.outputs.label == 'P0'
     steps:
      - uses: actions/github-script@v6
        with:
