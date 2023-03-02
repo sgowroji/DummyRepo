@@ -23,7 +23,7 @@ jobs:
             days=$(( ( $(date -u +%s) - $(date -u +%s -d $added) ) / 86400 ))
             echo "::set-output name=days::$days"
           fi
-      if: ${{ steps.check_label.outputs.days }} -ge 60
+      if: ${{ steps.check_label.outputs.days }} -ge 1
      - uses: actions/github-script@v6
        with:
          script: |
