@@ -13,10 +13,6 @@ jobs:
     permissions:
       issues: write
     steps:
-     - uses: actions/checkout@v2
-     - uses: actions-ecosystem/action-remove-labels@v1
-       with:
-         labels: P0
      - uses: actions/github-script@v6
        with:
          script: |
@@ -26,3 +22,7 @@ jobs:
            repo: context.repo.repo,
            labels: ["P1"]
            })
+     - uses: actions/checkout@v2
+     - uses: actions-ecosystem/action-remove-labels@v1
+       with:
+         labels: P0
