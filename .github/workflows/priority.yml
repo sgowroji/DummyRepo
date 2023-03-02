@@ -33,12 +33,16 @@ jobs:
     needs: check_label
     if: ${{ needs.check_label.outputs.days }} != '0' && needs.check_label.outputs.label == 'P0'
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-    - name: Update label
-      uses: peter-evans/labeler@v2.3.0
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        labels: P1
-        add-remove: remove
-        old-labels: P0
+     - uses: actions/github-script@v6
+       with:
+         script: |
+           github.rest.issues.addLabels({
+           issue_number: context.issue.number,
+           owner: context.repo.owner,
+           repo: context.repo.repo,
+           labels: ["P1"]
+           })
+     - uses: actions/checkout@v2
+     - uses: actions-ecosystem/action-remove-labels@v1
+       with:
+         labels: P0
