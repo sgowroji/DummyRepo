@@ -10,8 +10,16 @@ jobs:
   automate-issues-labels:
     runs-on: ubuntu-latest
     steps:
-      - name: initial labeling
-        uses: andymckay/labeler@master
+      - name: remove label
+        uses: buildsville/add-remove-label@v2.0.0
         with:
-          add-labels: "P1"
-          remove-labels: "P0"
+          token: ${{secrets.GITHUB_TOKEN}}
+          labels: P0
+          type: remove
+      - name: Add label
+        uses: buildsville/add-remove-label@v2.0.0
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
+          labels: P1
+          type: add
+          
