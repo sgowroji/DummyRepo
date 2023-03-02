@@ -2,19 +2,44 @@ name: Update Label
 on:
   schedule:
     - cron: '*/5 * * * *' # Runs every day at 12:00 AM UTC
-  issues:
-    types: [opened, edited, labeled]
+  workflow_dispatch:
 jobs:
   update-label:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Update Label
-        uses: peter-evans/labeler@v4
+        uses: actions/github-script@v4
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          labels: P1
-          added-labels: P1
-          removed-labels: P0
-          issue-labels: P0
-          days-before: 0
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: issues } = await github.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'P0',
+              state: 'open'
+            });
+            const sixtyDaysAgo = new Date(new Date().getTime() - 1*24*60*60*1000).toISOString();
+            for (const issue of issues) {
+              const { data: labels } = await github.issues.listLabelsOnIssue({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number
+              });
+              const hasP0 = labels.some(label => label.name === 'P0');
+              const hasP1 = labels.some(label => label.name === 'P1' && label.created_at < sixtyDaysAgo);
+              if (hasP0 && !hasP1) {
+                await github.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  labels: ['P1']
+                });
+                await github.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  name: 'P0'
+                });
+              }
+            }
