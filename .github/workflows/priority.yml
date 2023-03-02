@@ -7,9 +7,10 @@ on:
 jobs:
   check_label:
     permissions:
-      contents: 'read'
-      id-token: 'write'
-      issues: 'write'
+      # All other permissions are set to none
+      checks: write
+      contents: read
+      pull-requests: write
     runs-on: ubuntu-latest
     outputs:
       days: ${{ steps.set_label_date.outputs.days }}
