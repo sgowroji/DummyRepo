@@ -17,4 +17,4 @@ jobs:
           added-labels: P1
           removed-labels: P0
           issue-labels: P0
-          days-before: 60
+          days-before: 0
