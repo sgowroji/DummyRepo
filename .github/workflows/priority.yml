@@ -17,8 +17,7 @@ jobs:
      - uses: actions-ecosystem/action-remove-labels@v1
        with:
          labels: P0
-     - name: add label
-       uses: actions/github-script@v6
+     - uses: actions/github-script@v6
        with:
          script: |
            github.rest.issues.addLabel({
