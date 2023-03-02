@@ -1,14 +1,14 @@
-name: Update Label
+name: Change P0 label to P1 after 60 days
+
 on:
   schedule:
-    - cron: '*/5 * * * *' # Runs every day at 12:00 AM UTC
-  workflow_dispatch:
+    - cron: '*/5 * * * *'
+
 jobs:
-  update-label:
+  change-label:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Update Label
+      - name: Check if P0 label was added more than 60 days ago
         uses: actions/github-script@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -16,30 +16,19 @@ jobs:
             const { data: issues } = await github.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              labels: 'P0',
-              state: 'open'
+              labels: 'P0'
             });
-            const sixtyDaysAgo = new Date(new Date().getTime() - 1*24*60*60*1000).toISOString();
-            for (const issue of issues) {
-              const { data: labels } = await github.issues.listLabelsOnIssue({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number
-              });
-              const hasP0 = labels.some(label => label.name === 'P0');
-              const hasP1 = labels.some(label => label.name === 'P1' && label.created_at < sixtyDaysAgo);
-              if (hasP0 && !hasP1) {
-                await github.issues.addLabels({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issue.number,
-                  labels: ['P1']
-                });
-                await github.issues.removeLabel({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issue.number,
-                  name: 'P0'
-                });
-              }
-            }
+            const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
+            const issuesToUpdate = issues.filter(issue => issue.labels.find(label => label.name === 'P0' && label.created_at <= sixtyDaysAgo));
+            core.setOutput('issuesToUpdate', JSON.stringify(issuesToUpdate));
+      
+      - name: Update label from P0 to P1
+        if: steps.check.outputs.issuesToUpdate != '[]'
+        uses: peter-evans/labeler@v5.1.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          labels: P1
+          add-labels: P1
+          remove-labels: P0
+          allow-empty: true
+          issues: ${{ steps.check.outputs.issuesToUpdate }}
