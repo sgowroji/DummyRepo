@@ -24,7 +24,7 @@ jobs:
           days=$(( ( $(date -u +%s) - $(date -u +%s -d $added) ) / 86400 ))
           echo "::set-output name=days::$days"
         fi
-       if: ${{ steps.check_label.outputs.days }} >= 2
+       if: ${{ steps.check_label.outputs.days }} >= 2 {
         
      - uses: actions/github-script@v6
        with:
@@ -38,4 +38,4 @@ jobs:
      - uses: actions/checkout@v2
      - uses: actions-ecosystem/action-remove-labels@v1
        with:
-         labels: P0
+         labels: P0}
