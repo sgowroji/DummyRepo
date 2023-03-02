@@ -8,8 +8,6 @@ on:
       - reopened
       - opened
 jobs:
-  label_issues:
-    if: github.event.
     runs-on: ubuntu-latest
     permissions:
       issues: write
