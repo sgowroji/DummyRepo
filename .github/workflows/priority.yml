@@ -1,20 +1,24 @@
-name: Change P0 label to P1 after 60 days
+name: Label changer
 
 on:
   schedule:
     - cron: '*/5 * * * *'
   issues:
-    types: [opened]
-
+    types:
+      - reopened
+      - opened
 jobs:
-  add-label:
-    name: Add Label
+  label_issues:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
-      - uses: actions/checkout@v2
-      - uses: christianvuerings/add-labels@v1
+      - uses: actions/github-script@v6
         with:
-          labels: |
-            P1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["P1"]
+            })
