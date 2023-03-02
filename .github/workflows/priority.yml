@@ -1,8 +1,9 @@
 name: Label changer
 
 on:
+  workflow_dispatch:
   schedule:
-    - cron: '*/5 * * * *'
+  - cron: '*/5 * * * *'
   issues:
     types:
       - reopened
@@ -39,4 +40,3 @@ jobs:
      - uses: actions-ecosystem/action-remove-labels@v1
        with:
          labels: P0
-          debug-only:true
