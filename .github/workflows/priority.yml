@@ -5,30 +5,24 @@ on:
     - cron: '*/5 * * * *'
 
 jobs:
-  change-label:
+  label_issues:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
-      - name: Check if P0 label was added more than 60 days ago
-        uses: actions/github-script@v4
+      - uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { data: issues } = await github.issues.listForRepo({
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              labels: 'P0'
-            });
-            const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
-            const issuesToUpdate = issues.filter(issue => issue.labels.find(label => label.name === 'P0' && label.created_at <= sixtyDaysAgo));
-            core.setOutput('issuesToUpdate', JSON.stringify(issuesToUpdate));
-      
-      - name: Update label from P0 to P1
-        if: steps.check.outputs.issuesToUpdate != '[]'
-        uses: peter-evans/labeler@v5.1.0
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          labels: P1
-          add-labels: P1
-          remove-labels: P0
-          allow-empty: true
-          issues: ${{ steps.check.outputs.issuesToUpdate }}
+              labels: ["P1"]
+            })
+            github.rest.issues.removeLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["P0"]
+            })
