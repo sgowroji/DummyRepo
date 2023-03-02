@@ -16,6 +16,7 @@ jobs:
       checks: write
       contents: read
       issues: write
+      pull-requests: write
     steps:
       - name: Check PR author
         id: pr-author-check
