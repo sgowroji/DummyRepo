@@ -14,16 +14,18 @@ jobs:
     permissions:
       issues: write
     steps:
-    - name: Check if label is P0 and was added more than 60 days ago
-        id: check_label
-        run: |
+     - name: priority
+       id: check_label
+       run: |
           label=$(jq -r ".label.name" $GITHUB_EVENT_PATH)
+          echo "::set-output name={label}::$($label)"
           if [ "$label" = "P0" ]; then
             added=$(jq -r ".label.created_at" $GITHUB_EVENT_PATH)
             days=$(( ( $(date -u +%s) - $(date -u +%s -d $added) ) / 86400 ))
-            echo "::set-output name=days::$days"
+            echo "::set-output name={days}::{$days}"
           fi
-      if: ${{ steps.check_label.outputs.days }} -ge 1
+       if: ${{ steps.check_label.outputs.days }} >= 2
+        
      - uses: actions/github-script@v6
        with:
          script: |
