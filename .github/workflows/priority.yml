@@ -13,18 +13,19 @@ jobs:
     permissions:
       issues: write
     steps:
-     - name: remove label
      - uses: actions/checkout@v2
      - uses: actions-ecosystem/action-remove-labels@v1
        with:
-         labels: P0     
+         labels: bug
+
+
      - name: add label
-     - uses: actions/github-script@v6
+       uses: actions/github-script@v6
        with:
          script: |
-           github.rest.issues.addLabel({
-           issue_number: context.issue.number,
-           owner: context.repo.owner,
-           repo: context.repo.repo,
-           labels: ["P1"]
-           })
+            github.rest.issues.addLabel({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ["P1"]
+            })
