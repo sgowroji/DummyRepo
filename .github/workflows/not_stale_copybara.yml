@@ -27,8 +27,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             async function run() {
-              const author = context.payload.pull_request.user.login;
-              echo "This PR is opened by ${{ context.payload.pull_request.user.login }} ."
+              const author = github.event.pull_request.user.login ;
+              run: echo "This PR is opened by ${{ github.event.pull_request.user.login }} ."
               if (author === "copybara-service[bot]") {
                 const issue_number = context.payload.pull_request.number;
                 const labels = ["not stale"];
