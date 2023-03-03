@@ -28,7 +28,7 @@ jobs:
           script: |
             async function run() {
               const author = context.payload.pull_request.user.login;
-              echo "This PR is opened by ${{ author }} ."
+              echo "This PR is opened by ${{ context.payload.pull_request.user.login }} ."
               if (author === "copybara-service[bot]") {
                 const issue_number = context.payload.pull_request.number;
                 const labels = ["not stale"];
