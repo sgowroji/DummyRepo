@@ -1,34 +1,57 @@
-name: Check Issue Priority
-
 on:
-  schedule:
-    - cron: '*/5 * * * *’
-
+  issues:
+    types: 
+     - opened
+     - reopened
 
 jobs:
-  check-issue-priority:
+  check_label:
+    permissions:
+      checks: write
+      contents: read
+      issues: write
     runs-on: ubuntu-latest
-
+    outputs:
+      days: ${{ steps.set_label_date.outputs.days }}
     steps:
-    - name: Checkout repository
+    - name: Checkout
       uses: actions/checkout@v2
-
-    - name: Check issue priority
+    - name: Set label date
+      id: set_label_date
       run: |
-        token=$GITHUB_TOKEN
-        user=USERNAME
-        repo=REPO_NAME
-        label_p0="P0"
-        label_p1="P1"
-        days=60
-        date=$(date -u +"%Y-%m-%dT%H:%M:%SZ" -d "-$days days")
-        query="repo:$user/$repo is:issue is:open label:$label_p0 updated:<$date"
-        issues=$(curl -s -H "Authorization: token $token" "https://api.github.com/search/issues?q=$query" | jq -r '.items[].number')
-        for issue in $issues
-        do
-          labels=$(curl -s -H "Authorization: token $token" "https://api.github.com/repos/$user/$repo/issues/$issue/labels" | jq -r '.[].name')
-          if [[ $labels == *"$label_p0"* ]]; then
-            curl -s -X PATCH -H "Authorization: token $token" -H "Content-Type: application/json" -d "{\"labels\":[\"$label_p1\"]}" "https://api.github.com/repos/$user/$repo/issues/$issue"
-            echo "Priority of issue #$issue updated from P0 to P1"
-          fi
-        done
+        label=$(jq -r ".label.name" $GITHUB_EVENT_PATH)
+        echo "::set-output name=date::$(jq -r '.label.created_at' $GITHUB_EVENT_PATH)"
+        echo "::set-output name=label::${label}"
+    - name: Check label age
+      id: check_label
+      run: |
+        days=$(( ($(date -u +%s) - $(date -u -d ${{ steps.set_label_date.outputs.date }} +%s)) / 86400 ))
+        if [ $days -gt 60 ]; then
+          echo "::set-output name=days::${days}"
+        else
+          echo "::set-output name=days::0"
+        fi
+
+  update_label:
+    runs-on: ubuntu-latest
+    needs: check_label
+    permissions:
+      checks: write
+      contents: read
+      issues: write
+    if: ${{ needs.check_label.outputs.days }} == '0' && needs.check_label.outputs.label == 'P0'
+    steps:
+     - uses: actions/github-script@v6
+       with:
+         github-token: ${{ secrets.GITHUB_TOKEN }}
+         script: |
+           github.rest.issues.addLabels({
+           issue_number: context.issue.number,
+           owner: context.repo.owner,
+           repo: context.repo.repo,
+           labels: ["P1"]
+           })
+     - uses: actions/checkout@v2
+     - uses: actions-ecosystem/action-remove-labels@v1
+       with:
+         labels: P0
