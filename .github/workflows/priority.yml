@@ -1,9 +1,10 @@
-on:
-  issues:
-    types: 
-     - opened
-     - reopened
+name: Update Priority Label
 
+on:
+  workflow_dispatch:
+  schedule:
+  - cron: '*/5 * * * *'
+  
 jobs:
   check_label:
     permissions:
@@ -11,8 +12,11 @@ jobs:
       contents: read
       issues: write
     runs-on: ubuntu-latest
+    
     outputs:
       days: ${{ steps.set_label_date.outputs.days }}
+      run: echo "::set-output name=days::${steps.set_label_date.outputs.days}"
+      
     steps:
     - name: Checkout
       uses: actions/checkout@v2
@@ -26,6 +30,8 @@ jobs:
       id: check_label
       run: |
         days=$(( ($(date -u +%s) - $(date -u -d ${{ steps.set_label_date.outputs.date }} +%s)) / 86400 ))
+        echo "::set-output name=date::${date}"
+        echo "::set-output name=days::${days}"
         if [ $days -gt 60 ]; then
           echo "::set-output name=days::${days}"
         else
