@@ -28,7 +28,7 @@ jobs:
           script: |
             async function run() {
               const author = context.payload.pull_request.user.login;
-              if (author === "dependabot[bot]") {
+              if (author === "sgowroji") {
                 const issue_number = context.payload.pull_request.number;
                 const labels = ["not stale"];
                 await github.issues.addLabels({
