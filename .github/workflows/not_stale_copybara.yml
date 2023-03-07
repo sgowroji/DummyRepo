@@ -15,7 +15,7 @@ on:
     types: [opened, reopened]
   push:
     branches:
-     '**'
+     'sgowroji-patch-1'
 
 jobs:
   label-not-stale-prs:
