@@ -15,7 +15,7 @@ on:
     types: [opened, reopened]
   push:
     branches:
-      - main
+      - google
 
 jobs:
   label-not-stale-prs:
