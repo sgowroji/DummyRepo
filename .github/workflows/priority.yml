@@ -45,7 +45,7 @@ jobs:
       checks: write
       contents: read
       issues: write
-    if: ${{ needs.check_label.outputs.days }} ==! '0' && needs.check_label.outputs.label == 'P0'
+    if: ${{ needs.check_label.outputs.days }} == '0' && needs.check_label.outputs.label == 'P0'
     steps:
      - uses: actions/github-script@v6
        with:
