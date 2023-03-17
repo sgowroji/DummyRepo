@@ -5,7 +5,7 @@ module.exports = async ({ github, context }) => {
         owner: context.repo.owner,
         repo: context.repo.repo,
         state: "open",
-        labels: "p0"
+        labels: "P0"
     });
 
     
@@ -27,7 +27,7 @@ module.exports = async ({ github, context }) => {
         for (let i = 0; i < events.length; i++) {
             let event_details = events[i];
             console.log("event_details",event_details)
-            if (event_details.event == 'labeled' && event_details.label && event_details.label.name == "p0") {
+            if (event_details.event == 'labeled' && event_details.label && event_details.label.name == "P0") {
                 let currentDate = new Date();
                 let labeledDate = new Date(event_details.created_at)
                 console.log("time diff",currentDate - labeledDate)
@@ -36,7 +36,7 @@ module.exports = async ({ github, context }) => {
                         issue_number: number,
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        name: "p0"
+                        name: "P0"
 
                     })
 
@@ -44,7 +44,7 @@ module.exports = async ({ github, context }) => {
                         issue_number: number,
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        labels:["p1"]
+                        labels:["P1"]
 
                     })
                 }
