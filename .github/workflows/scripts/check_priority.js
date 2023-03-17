@@ -31,7 +31,7 @@ module.exports = async ({ github, context }) => {
                 let currentDate = new Date();
                 let labeledDate = new Date(event_details.created_at)
                 console.log("time diff",currentDate - labeledDate)
-                if (currentDate - labeledDate >= 0) {
+                if (currentDate - labeledDate > 1) {
                     await github.rest.issues.removeLabel({
                         issue_number: number,
                         owner: context.repo.owner,
