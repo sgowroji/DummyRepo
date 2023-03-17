@@ -1,63 +1,20 @@
-name: Update Priority Label
-
+name: 'issues priority check'
 on:
-  workflow_dispatch:
-  schedule:
-  - cron: '*/5 * * * *'
-  
-jobs:
-  check_label:
-    permissions:
-      checks: write
-      contents: read
-      issues: write
-    runs-on: ubuntu-latest
-    
-    outputs:
-      days: ${{ steps.set_label_date.outputs.days }}
-      run: echo "::set-output name=days::${steps.set_label_date.outputs.days}"
-      
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-    - name: Set label date
-      id: set_label_date
-      run: |
-        label=$(jq -r ".label.name" $GITHUB_EVENT_PATH)
-        echo "::set-output name=date::$(jq -r '.label.created_at' $GITHUB_EVENT_PATH)"
-        echo "::set-output name=label::${label}"
-    - name: Check label age
-      id: check_label
-      run: |
-        days=$(( ($(date -u +%s) - $(date -u -d ${{ steps.set_label_date.outputs.date }} +%s)) / 86400 ))
-        echo "::set-output name=date::${date}"
-        echo "::set-output name=days::${days}"
-        if [ $days -gt 60 ]; then
-          echo "::set-output name=days::${days}"
-        else
-          echo "::set-output name=days::0"
-        fi
+   workflow_dispatch:
+   schedule:
+    - cron: '*/5 * * * *'
 
-  update_label:
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  welcome:
     runs-on: ubuntu-latest
-    needs: check_label
-    permissions:
-      checks: write
-      contents: read
-      issues: write
-    if: ${{ needs.check_label.outputs.days }} == '0' && needs.check_label.outputs.label == 'P0'
     steps:
-     - uses: actions/github-script@v6
-       with:
-         github-token: ${{ secrets.GITHUB_TOKEN }}
-         script: |
-           github.rest.issues.addLabels({
-           issue_number: context.issue.number,
-           owner: context.repo.owner,
-           repo: context.repo.repo,
-           labels: ["P1"]
-           })
-     - uses: actions/checkout@v2
-     - uses: actions-ecosystem/action-remove-labels@v1
-       with:
-         labels: P0
+      - uses: actions/checkout@v3
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            const script = require('./\.github/workflows/scripts/check_priority.js')
+            script({github, context})
