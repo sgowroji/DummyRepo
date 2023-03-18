@@ -1,0 +1,23 @@
+name: Comment on PR
+
+on:
+  pull_request_review:
+    types: [submitted]
+  schedule:
+    - cron: '*/5 * * * *' # Runs every day at midnight UTC
+
+jobs:
+  comment-on-pr:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Get time since approval
+      id: get_time_since_approval
+      run: echo "::set-output name=time_since_approval::$(echo $(($(date +%s) - $(date -d "$(curl -s https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ github.event.pull_request.number }} | jq -r .updated_at)" +%s))) / 86400 | bc) days ago"
+    - name: Comment on PR
+      if: ${{ steps.get_time_since_approval.outputs.time_since_approval >= 1 }}
+      uses: peter-evans/create-or-update-comment@v1.2.2
+      with:
+        body: 'This pull request has been approved for over a day without merging. Is there anything blocking it from being merged?'
+        token: ${{ secrets.GITHUB_TOKEN }}
