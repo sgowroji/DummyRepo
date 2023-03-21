@@ -1,25 +1,25 @@
-name: Comment on PR
+name: Respond to approved
 
 on:
   pull_request_review:
     types: [submitted]
-  schedule:
-    - cron: '*/5 * * * *' # Runs every day at midnight UTC
 
 jobs:
-  comment-on-pr:
+  check-state:
+    if: github.event.review.state == 'approved'
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Get time since approval
-      id: get_time_since_approval
-      run: echo "::set-output name=time_since_approval::$(echo $(($(date +%s) - $(date -d "$(curl -s https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${{ github.event.pull_request.number }} | jq -r .updated_at)" +%s))) / 86400 | bc) days ago"
-    - name: Comment on PR
-      if: ${{ steps.get_time_since_approval.outputs.time_since_approval >= 1 }}
-      uses: peter-evans/create-or-update-comment@v2
-      with:
-        body: 'This pull request has been approved for over a day without merging. Is there anything blocking it from being merged?'
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Find last comment
+        id: find-last-comment
+        uses: peter-evans/find-comment@v1
+        with:
+          issue-number: ${{github.event.pull_request.number}}
+          comment-author: 'github-actions[bot]'
+          body-includes: 'Please add awaiting-pr-merge to import this PR,  as we see it is approved.'
+
+      - name: Comment
+        if: steps.find-last-comment.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{github.event.pull_request.number}}
+          body: "Please add awaiting-pr-merge to import this PR,  as we see it is approved."
