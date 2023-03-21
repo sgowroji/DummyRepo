@@ -1,0 +1,25 @@
+name: Respond to approved
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  check-state:
+    if: github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find last comment
+        id: find-last-comment
+        uses: peter-evans/find-comment@v1
+        with:
+          issue-number: ${{github.event.pull_request.number}}
+          comment-author: 'github-actions[bot]'
+          body-includes: 'Please add awaiting-pr-merge to import this PR,  as we see it is approved.'
+
+      - name: Comment
+        if: steps.find-last-comment.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{github.event.pull_request.number}}
+          body: "Please add awaiting-pr-merge to import this PR,  as we see it is approved."
