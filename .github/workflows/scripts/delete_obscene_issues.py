@@ -1,10 +1,11 @@
 import requests
 import json
 
-def delete_issue(issue_number, token):
+def close_issue(issue_number, token):
     url = f"https://api.github.com/repos/{owner}/{repo}/issues/{issue_number}"
     headers = {"Authorization": f"token {token}"}
-    response = requests.delete(url, headers=headers)
+    data = {"state": "closed"}
+    response = requests.patch(url, headers=headers, json=data)
     response.raise_for_status()
 
 def block_user(username, token):
@@ -32,7 +33,7 @@ def main(token):
         if "obscene" in title or "obscene" in body or "abusive" in title or "abusive" in body or "porn" in title or "porn" in body:
             issue_number = issue['number']
             username = issue['user']['login']
-            delete_issue(issue_number, token)
+            close_issue(issue_number, token)
             block_user(username, token)
             print(f"Deleted issue #{issue_number} and blocked user {username}")
 
