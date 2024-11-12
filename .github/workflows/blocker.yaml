@@ -1,0 +1,22 @@
+name: Delete Obscene Issues and Block Users
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  delete-obscene-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install Dependencies
+        run:   
+ |
+          pip install   
+ requests
+      - name: Delete Obscene Issues and Block Users
+        run: |
+          python delete_obscene_issues.py ${{ secrets.GITHUB_TOKEN }}
