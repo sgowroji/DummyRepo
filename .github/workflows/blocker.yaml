@@ -14,7 +14,7 @@ jobs:
         id: check_content
         run: |
           # Define a list of words to check against (you can expand this list)
-          OBSCENE_WORDS=("obscene" "abusive" "porn" "violence" "hate", "Sexy")
+          OBSCENE_WORDS=("obscene" "abusive" "porn" "violence" "hate", "sexy")
 
           # Fetch the issue title and body
           ISSUE_TITLE="${{ github.event.issue.title }}"
