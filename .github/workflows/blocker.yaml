@@ -1,8 +1,7 @@
 name: Close Obscene or Abusive Issues
 
 on:
-  issues:
-    types: [opened, reopened]
+ workflow_dispatch:
 
 jobs:
   check-issue-content:
