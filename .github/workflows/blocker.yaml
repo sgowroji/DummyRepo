@@ -1,0 +1,67 @@
+name: Close Obscene or Abusive Issues
+
+on:
+ workflow_dispatch:
+
+jobs:
+  check-issue-content:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Check issue content for obscene/abusive terms
+        id: check_content
+        run: |
+          # Define a list of words to check against (you can expand this list)
+          OBSCENE_WORDS=("obscene" "abusive" "porn" "violence" "hate", "sexy")
+
+          # Fetch the issue title and body
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          ISSUE_BODY="${{ github.event.issue.body }}"
+
+          # Function to check if any obscene word exists in the text
+          check_for_obscenity() {
+            local text="$1"
+            for word in "${OBSCENE_WORDS[@]}"; do
+              if [[ "$text" =~ \b$word\b ]]; then
+                echo "Found obscene content: $word"
+                return 1
+              fi
+            done
+            return 0
+          }
+
+          # Check the title and body for any obscene content
+          if ! check_for_obscenity "$ISSUE_TITLE"; then
+            echo "Obscene content found in the title. Closing issue."
+            echo "::set-output name=close_issue::true"
+          elif ! check_for_obscenity "$ISSUE_BODY"; then
+            echo "Obscene content found in the body. Closing issue."
+            echo "::set-output name=close_issue::true"
+          else
+            echo "No obscene content found."
+            echo "::set-output name=close_issue::false"
+          fi
+
+      - name: Close issue if necessary
+        if: steps.check_content.outputs.close_issue == 'true'
+        run: |
+          curl -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{"state": "closed"}' \
+            "https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}"
+
+      - name: Block the user if necessary
+        if: steps.check_content.outputs.close_issue == 'true'
+        run: |
+          # Get the username of the user who opened the issue
+          USERNAME="${{ github.event.issue.user.login }}"
+
+          # Block the user by adding them to the blocklist
+          curl -X PUT \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{"blocked": true}' \
+            "https://api.github.com/users/$USERNAME"
